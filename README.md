@@ -1,2 +1,2 @@
-# dp_charts
+# dp-charts
 Data Warehouse Platform Helm Charts
