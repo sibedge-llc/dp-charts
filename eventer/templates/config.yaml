@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-config"
+data:
+  config.yaml: |
+    logging:
+    # levels: "debug", "info", "warn", "error", "dpanic", "panic", and "fatal"
+    level: {{ .Values.config.logLevel }}
+
+    instance_id: {{ .Values.config.instanceId }}
+
+    kafka:
+      bootstrap_servers: {{ .Values.config.kafka.servers }}
+      topic: {{ .Values.config.kafka.topic }}
+
+    postgres:
+      host: "${secret_postgres/host}"
+      port: ${secret_postgres/port}
+      user: "${secret_postgres/user}"
+      password: "${secret_postgres/password}"
+      db: "${secret_postgres/db}"
+      table: {{ .Values.config.postgres.table }}
+
+    service:
+      listen: "0.0.0.0:{{ .Values.service.port }}"

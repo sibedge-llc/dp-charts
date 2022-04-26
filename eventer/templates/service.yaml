@@ -9,7 +9,6 @@ spec:
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http
-      protocol: TCP
       name: http
   selector:
     {{- include "eventer.selectorLabels" . | nindent 4 }}

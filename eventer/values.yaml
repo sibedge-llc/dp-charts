@@ -13,6 +13,15 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+config:
+  instanceId: "eventer-1.0.0"
+  logLevel: debug
+  kafka:
+    servers: kafka:9092
+    topic: events
+  postgres:
+    table: events
+
 serviceAccount:
   create: true
   annotations: {}
