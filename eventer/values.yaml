@@ -6,11 +6,11 @@ replicaCount: 1
 
 image:
   repository: artemalemasov/services
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "eventer-1.0.0"
 
 imagePullSecrets: []
-nameOverride: ""
+nameOverride: "eventer-1.0.0"
 fullnameOverride: ""
 
 config:
