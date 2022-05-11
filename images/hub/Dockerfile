@@ -1,0 +1,1 @@
+FROM jupyterhub/k8s-hub:1.2.0

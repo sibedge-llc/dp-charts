@@ -1,0 +1,67 @@
+replicaCount: 1
+
+image:
+  repository: skhakhulin/kyuubi
+  tag: "1.0.5"
+  # repository: harbor-awsbi.runit.cc/kyuubi/kyuubi
+  # tag: "test5"
+  pullPolicy: IfNotPresent
+
+probe:
+  liveness:
+    enabled: false
+    # enabled: true
+    # initialDelaySeconds: 30
+    # periodSeconds: 10
+    # failureThreshold: 10
+  readiness:
+    enabled: false
+    # enabled: true
+    # initialDelaySeconds: 30
+    # periodSeconds: 10
+    # failureThreshold: 10
+
+server:
+  bind:
+    host: 0.0.0.0
+    port: 10009
+  conf:
+    mountPath: /opt/kyuubi/conf
+
+service:
+  type: NodePort
+  # The default port limit of kubernetes is 30000-32767
+  # to change:
+  #   vim kube-apiserver.yaml (usually under path: /etc/kubernetes/manifests/)
+  #   add or change line 'service-node-port-range=1-32767' under kube-apiserver
+  port: 30009
+  annotations: {}
+
+# resources: 
+#    limits:
+#      cpu: 2
+#      memory: 4Gi
+#    requests:
+#      cpu: 2
+#      memory: 4Gi
+
+nodeSelector: {}
+  # kubernetes.io/hostname: node3
+
+
+# tolerations:
+#   - key: "role"
+#     operator: "Equal"
+#     value: "spark"
+#     effect: "NoExecute"
+
+secrets:
+  # для этого релиза подключаем RW ключи s3
+  - env_variable: AWS_ACCESS_KEY_ID
+    k8s_secret_name: spark-secrets
+    key_name: s3-rw-access-key
+  - env_variable: AWS_SECRET_ACCESS_KEY
+    k8s_secret_name: spark-secrets
+    key_name: s3-rw-secret-key
+
+sparkNamespace: "default"

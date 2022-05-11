@@ -1,0 +1,11 @@
+configInline:
+  address-pools:
+   - name: jupyterhub
+     protocol: layer2
+     addresses:
+     - 45.77.158.172/32
+   - name: spark
+     protocol: layer2
+     addresses:
+     - 207.246.80.29/32
+

@@ -1,0 +1,16 @@
+---
+kind: Service 
+apiVersion: v1
+metadata:
+  name: kyuubi-svc-headless
+  labels: 
+    app: {{ template "kyuubi.name" . }}
+spec: 
+  clusterIP: None
+  ports: 
+    - name: http
+      protocol: TCP
+      port: {{ .Values.server.bind.port }}
+      targetPort: {{ .Values.server.bind.port }}
+  selector:
+    app: {{ template "kyuubi.name" . }}

@@ -1,0 +1,79 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-kyuubi-spark-configmap
+  namespace: {{ .Values.sparkNamespace }}
+  labels:
+    app: {{ template "kyuubi.name" . }}
+data:
+  # спрятать весь конфиг в секреты, подставив логин-пароль для подключения к постгре - RW для дата-инженеров, RO для аналитиков
+  hive-site.xml: |
+    <configuration>
+      <property>
+          <name>javax.jdo.option.ConnectionURL</name>
+          <value>jdbc:postgresql://postgresql.postgresql.svc.cluster.local:5432/metastore?createDatabaseIfNotExist=true</value>
+      </property>
+
+      <property>
+          <name>javax.jdo.option.ConnectionDriverName</name>
+          <value>org.postgresql.Driver</value>
+      </property>
+  
+      <property>
+          <name>javax.jdo.option.ConnectionUserName</name>
+          <value>hive</value>
+      </property>
+  
+      <property>
+          <name>javax.jdo.option.ConnectionPassword</name>
+          <value>password</value>
+      </property>
+  
+      <property>
+          <name>datanucleus.schema.autoCreateTables</name>
+          <value>true</value>
+      </property>
+  
+      <property>
+          <name>hive.metastore.warehouse.dir</name>
+          <value>s3a://spark/warehouse/</value>
+      </property>
+  
+      <property>
+          <name>hive.metastore.schema.verification</name>
+          <value>false</value>
+      </property>
+  
+      <property>
+          <name>hive.stats.jdbc.timeout</name>
+          <value>30</value>
+      </property>
+  
+      <property>
+          <name>hive.stats.retries.wait</name>
+          <value>3000</value>
+      </property>
+    </configuration>
+
+  metrics.properties: |
+    *.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet
+    *.sink.prometheusServlet.path=/metrics/prometheus
+    master.sink.prometheusServlet.path=/metrics/master/prometheus
+    applications.sink.prometheusServlet.path=/metrics/applications/prometheus

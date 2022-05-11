@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    meta.helm.sh/release-name: jupyterhub
+    meta.helm.sh/release-namespace: jupyterhub 
+  generation: 1
+  labels:
+    app: jupyterhub
+    app.kubernetes.io/managed-by: Helm
+    chart: jupyterhub-1.2.0
+    component: singleuser
+    heritage: Helm
+    release: jupyterhub
+  name: singleuser
+  namespace: jupyterhub
+spec:
+  egress:  
+  - {}
+  ingress:  
+  - {}
+  podSelector:
+    matchLabels:
+      app: jupyterhub
+      component: singleuser-server
+      release: jupyterhub
+  policyTypes:
+  - Ingress
+  - Egress

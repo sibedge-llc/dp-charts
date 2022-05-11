@@ -1,0 +1,10 @@
+```bash 
+helm repo add harbor https://helm.goharbor.io
+```
+
+```bash
+helm install harbor harbor/harbor \
+    --namespace harbor \
+	--create-namespace \
+	-f values.yaml
+```

@@ -1,0 +1,41 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: spark-jobs
+  name: spark-jobs-spark-spawner
+rules:
+- apiGroups: [""]
+  resources: ["pods", "configmaps", "services", "persistentvolumeclaims"]
+  verbs: ["get", "watch", "list", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spark-jobs-spark-spawner
+subjects:
+- kind: ServiceAccount
+  name: spark
+  namespace: spark-jobs
+roleRef:
+  kind: ClusterRole
+  name: spark-jobs-spark-spawner
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spark-operator-spark-operator
+subjects:
+- kind: ServiceAccount
+  name: spark-spark-operator
+  namespace: spark-operator
+roleRef:
+  kind: ClusterRole
+  name: spark-spark-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark-spark-operator
+  namespace: spark-operator

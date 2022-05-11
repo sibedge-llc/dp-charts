@@ -1,0 +1,187 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: ubuntu
+  namespace: jupyterhub
+  uid: a3b09bfe-36fe-4a55-b591-13eec3da84d8
+  resourceVersion: '5409577'
+  creationTimestamp: '2021-11-18T16:09:32Z'
+  labels:
+    app: ubuntu
+  annotations:
+    cni.projectcalico.org/containerID: 1a77b8a75f70ee11d855c1b9632a908a0b772826a428043f538e6fd501e5d992
+    cni.projectcalico.org/podIP: 10.233.96.143/32
+    cni.projectcalico.org/podIPs: 10.233.96.143/32
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"labels":{"app":"ubuntu"},"name":"ubuntu","namespace":"jupyterhub"},"spec":{"containers":[{"command":["sleep","604800"],"image":"ubuntu","imagePullPolicy":"IfNotPresent","name":"ubuntu"}],"restartPolicy":"Always"}}
+  managedFields:
+    - manager: kubectl-client-side-apply
+      operation: Update
+      apiVersion: v1
+      time: '2021-11-18T16:09:32Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:annotations:
+            .: {}
+            f:kubectl.kubernetes.io/last-applied-configuration: {}
+          f:labels:
+            .: {}
+            f:app: {}
+        f:spec:
+          f:containers:
+            k:{"name":"ubuntu"}:
+              .: {}
+              f:command: {}
+              f:image: {}
+              f:imagePullPolicy: {}
+              f:name: {}
+              f:resources: {}
+              f:terminationMessagePath: {}
+              f:terminationMessagePolicy: {}
+          f:dnsPolicy: {}
+          f:enableServiceLinks: {}
+          f:restartPolicy: {}
+          f:schedulerName: {}
+          f:securityContext: {}
+          f:terminationGracePeriodSeconds: {}
+    - manager: calico
+      operation: Update
+      apiVersion: v1
+      time: '2021-11-18T16:09:33Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:annotations:
+            f:cni.projectcalico.org/containerID: {}
+            f:cni.projectcalico.org/podIP: {}
+            f:cni.projectcalico.org/podIPs: {}
+    - manager: kubelet
+      operation: Update
+      apiVersion: v1
+      time: '2021-11-18T16:09:36Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:status:
+          f:conditions:
+            k:{"type":"ContainersReady"}:
+              .: {}
+              f:lastProbeTime: {}
+              f:lastTransitionTime: {}
+              f:status: {}
+              f:type: {}
+            k:{"type":"Initialized"}:
+              .: {}
+              f:lastProbeTime: {}
+              f:lastTransitionTime: {}
+              f:status: {}
+              f:type: {}
+            k:{"type":"Ready"}:
+              .: {}
+              f:lastProbeTime: {}
+              f:lastTransitionTime: {}
+              f:status: {}
+              f:type: {}
+          f:containerStatuses: {}
+          f:hostIP: {}
+          f:phase: {}
+          f:podIP: {}
+          f:podIPs:
+            .: {}
+            k:{"ip":"10.233.96.143"}:
+              .: {}
+              f:ip: {}
+          f:startTime: {}
+spec:
+  volumes:
+    - name: kube-api-access-pglzq
+      projected:
+        sources:
+          - serviceAccountToken:
+              expirationSeconds: 3607
+              path: token
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+          - downwardAPI:
+              items:
+                - path: namespace
+                  fieldRef:
+                    apiVersion: v1
+                    fieldPath: metadata.namespace
+        defaultMode: 420
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      command:
+        - sleep
+        - '604800'
+      resources: {}
+      volumeMounts:
+        - name: kube-api-access-pglzq
+          readOnly: true
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      imagePullPolicy: IfNotPresent
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 30
+  dnsPolicy: ClusterFirst
+  serviceAccountName: default
+  serviceAccount: default
+  nodeName: node2
+  securityContext: {}
+  schedulerName: default-scheduler
+  tolerations:
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 300
+    - key: node.kubernetes.io/unreachable
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 300
+  priority: 0
+  enableServiceLinks: true
+  preemptionPolicy: PreemptLowerPriority
+status:
+  phase: Running
+  conditions:
+    - type: Initialized
+      status: 'True'
+      lastProbeTime: null
+      lastTransitionTime: '2021-11-18T16:09:32Z'
+    - type: Ready
+      status: 'True'
+      lastProbeTime: null
+      lastTransitionTime: '2021-11-18T16:09:36Z'
+    - type: ContainersReady
+      status: 'True'
+      lastProbeTime: null
+      lastTransitionTime: '2021-11-18T16:09:36Z'
+    - type: PodScheduled
+      status: 'True'
+      lastProbeTime: null
+      lastTransitionTime: '2021-11-18T16:09:32Z'
+  hostIP: 45.76.164.226
+  podIP: 10.233.96.143
+  podIPs:
+    - ip: 10.233.96.143
+  startTime: '2021-11-18T16:09:32Z'
+  containerStatuses:
+    - name: ubuntu
+      state:
+        running:
+          startedAt: '2021-11-18T16:09:36Z'
+      lastState: {}
+      ready: true
+      restartCount: 0
+      image: ubuntu:latest
+      imageID: >-
+        docker-pullable://ubuntu@sha256:626ffe58f6e7566e00254b638eb7e0f3b11d4da9675088f4781a50ae288f3322
+      containerID: >-
+        docker://15c0ff8c1b3199027506a033bbfaa2257222c06115fa8ac4ff2ec832c1ceebf3
+      started: true
+  qosClass: BestEffort

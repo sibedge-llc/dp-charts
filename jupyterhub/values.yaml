@@ -1,0 +1,86 @@
+singleuser: 
+  networkPolicy:
+    enabled: false
+
+  serviceAccountName: default
+  
+  profileList:
+    - display_name: "Minimal environment"
+      description: "To avoid too much bells and whistles: Python."
+    
+    - display_name: "Spark 3.2.0 container with Hadoop 3.3.1, Python 3.8, Scala 2.12 and Java 11"
+      description: "If you want to run Spark"
+      kubespawner_override:
+        image: skhakhulin/jupyterlab:3.2.4-spark-3.2.0-hadoop-3.3.1-java-11-scala-2.12-python-3.8-v18
+        default: true
+        # volume_mounts: 
+        #   - name: spark-config-volume
+        #     readOnly: true
+        #     mountPath: /opt/spark/conf
+        # volumes:
+        #   - name: spark-config-volume
+        #     configMap:
+        #       name: spark-jupyterhub-config
+      
+  defaultUrl: "/lab"
+  extraEnv:
+    JUPYERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
+  # extraPodConfig:
+  #   containers:
+  #     ports:
+  #       - containerPort: 8888
+  #         name: notebook-port
+  #         protocol: TCP
+  #       - containerPort: 2222 
+  #         name: driver 
+  #         protocol: TCP
+  #       - containerPort: 4040 
+  #         name: spark-ui 
+  #         protocol: TCP
+  #       - containerPort: 7777 
+  #         name: blockmanager 
+  #         protocol: TCP
+
+ # {username}, {userid}, {servername}, {hubnamespace}, {unescaped_username}, and {unescaped_servername}
+  storage:
+    capacity: 10Gi
+    dynamic:
+      pvcNameTemplate: claim-{username}-{servername}
+      volumeNameTemplate: volume-{username}-{servername}
+      storageClass: vultr-block-storage
+    homeMountPath: /opt/spark/work-dir
+
+hub:
+  config:
+    JupyterHub:
+      admin_access: true
+      authenticator_class: dummy
+      DummyAuthenticator:  
+        password: pcCtKrn3d4EcrTVQ
+  extraConfig:
+    ipaddress: |
+      from kubernetes import client
+
+      def modify_pod_hook(spawner, pod):
+          pod.spec.containers[0].env.extend([
+            client.V1EnvVar("MY_POD_IP", None, client.V1EnvVarSource(None, client.V1ObjectFieldSelector(None, "status.podIP"))),
+
+            client.V1EnvVar("SPARKMONITOR_UI_HOST", None, client.V1EnvVarSource(None, client.V1ObjectFieldSelector(None, "status.podIP"))),
+            client.V1EnvVar("SPARKMONITOR_UI_PORT", "4040"),
+          ])
+          return pod
+      c.KubeSpawner.modify_pod_hook = modify_pod_hook
+    jh_config.py: |
+        c.KubeSpawner.extra_container_config = {
+          "ports":[
+            {"containerPort":8888,"name":"notebook-port","protocol":"TCP"},
+            {"containerPort":2222,"name":"driver","protocol":"TCP"},
+            {"containerPort":4040,"name":"spark-ui","protocol":"TCP"},
+            {"containerPort":7777,"name":"blockmanager","protocol":"TCP"}
+            ]
+          }
+
+  db:
+    pvc:
+      storage: 10Gi
+      # storageClassName: vultr-block-storage

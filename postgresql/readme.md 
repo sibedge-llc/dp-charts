@@ -1,0 +1,11 @@
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+helm install postgresql bitnami/postgresql \
+    --namespace postgresql \
+	--create-namespace \
+	-f values.yaml
+
+helm uninstall kafka --namespace kafka  
+
+```

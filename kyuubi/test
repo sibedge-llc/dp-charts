@@ -1,0 +1,360 @@
+---
+# Source: kyuubi/templates/kyuubi-serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: install-kyuubi
+  namespace: kyuubi
+---
+# Source: kyuubi/templates/kyuubi-configmap.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kyuubi-defaults
+  labels:
+    app: kyuubi
+data:
+  kyuubi-defaults.conf: |
+    # Kyuubi configurations https://kyuubi.apache.org/docs/latest/deployment/settings.html
+    kyuubi.authentication=NONE
+    kyuubi.engine.share.level=CONNECTION
+    kyuubi.frontend.bind.host=0.0.0.0
+    kyuubi.frontend.bind.port=10009
+    kyuubi.metrics.reporters=PROMETHEUS
+
+    # Zookeeper required for kyuubi HA
+    kyuubi.ha.zookeeper.quorum=de-zk-zookeeper-headless.kyuubi:2181
+
+    # Required for k8s CLUSTER mode
+    kyuubi.engine.connection.url.use.hostname=false
+    
+    # Spark configurations
+    spark.master=k8s://https://kubernetes.default.svc:443
+    spark.submit.deployMode=cluster
+
+    spark.kubernetes.container.image=datamechanics/spark:3.2.0-hadoop-3.3.1-java-11-scala-2.12-python-3.8-latest
+    spark.kubernetes.namespace=default
+    spark.kubernetes.authenticate.driver.serviceAccountName=default
+    spark.kubernetes.authenticate.serviceAccountName=default
+
+    # Cert & token required to connect to k8s api
+    spark.kubernetes.authenticate.caCertFile=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    spark.kubernetes.authenticate.oauthTokenFile=/var/run/secrets/kubernetes.io/serviceaccount/token
+
+    # Required for k8s CLUSTER mode, to transfer kyuubi sqlengine jar to driver pod
+    spark.kubernetes.file.upload.path=s3a://spark/kyuubi/
+    
+    # S3     # НЕ УКАЗЫВАТЬ spark.hadoop.fs.s3a.endpoint !
+    spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+    spark.hadoop.fs.s3a.connection.ssl.enabled=false
+    spark.hadoop.fs.s3a.fast.upload=true
+    spark.driver.extraJavaOptions=-Divy.cache.dir=/tmp -Divy.home=/tmp
+    
+    # Logs
+    spark.eventLog.dir=s3a://spark/kyuubi/logs/
+    spark.eventLog.enabled=true
+    spark.eventLog.rotation.enabled=true
+    spark.eventLog.rotation.interval=3600
+    spark.eventLog.rotation.minFileSize=100m
+    spark.eventLog.rotation.maxFilesToRetain=2
+    
+    # Spark SQL
+    spark.sql.adaptive.enabled=true
+    spark.sql.broadcastTimeout=30000
+    spark.sql.legacy.parquet.datetimeRebaseModeInWrite=LEGACY
+    spark.sql.parquet.mergeSchema=true
+    spark.sql.sources.partitionOverwriteMode=dynamic
+    spark.sql.warehouse.dir=s3a://spark/warehouse/
+    
+    # Metrics
+    spark.ui.prometheus.enabled=true
+    spark.kubernetes.driver.annotation.prometheus.io/scrape=true
+    spark.kubernetes.driver.annotation.prometheus.io/path=/metrics/executors/prometheus/
+    spark.kubernetes.driver.annotation.prometheus.io/port=4040
+    spark.executor.processTreeMetrics.enabled=true
+    
+    # hive-site.xml configmap for metastore
+    spark.kubernetes.hadoop.configMapName=install-kyuubi-spark-configmap
+    
+    # path to spark pod template
+    # spark.kubernetes.driver.podTemplateFile=/opt/spark/podtemplate/pod_template.yml
+    # spark.kubernetes.executor.podTemplateFile=/opt/spark/podtemplate/pod_template.yml
+    # storing pod template in s3 does not work
+    
+    #####spark.kubernetes.driver.podTemplateFile=s3a://uchiru-bi-dwh-backup/kyuubi/pod_template.yml
+    #####spark.kubernetes.executor.podTemplateFile=s3a://uchiru-bi-dwh-backup/kyuubi/pod_template.yml
+
+#  log4j.properties: |
+#    # всё в консоль
+#    log4j.rootCategory=INFO, console
+#    log4j.appender.console=org.apache.log4j.ConsoleAppender
+#    log4j.appender.console.target=System.err
+#    log4j.appender.console.layout=org.apache.log4j.PatternLayout
+#    log4j.appender.console.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss.SSS} %p %c{2}: %m%n
+#    # отключить в логе ошибки 'org.apache.thrift.transport.TSaslTransportException: No data or no sasl data in the stream' из-за балансера:
+#    # пока тоже не работает, нужно добавлять джарники log4j и подбирать
+#    log4j.appender.console.filter.1=org.apache.log4j.filter.RegexFilter
+#    log4j.appender.console.filter.1.Regex=org.apache.thrift.transport.TSaslTransportException
+#    log4j.appender.console.filter.1.onMatch=DENY
+#    # найдено в гугле, не работает с коробочной версией log4j
+#    #log4j.appender.console.filter.1=org.apache.log4j.filter.ExpressionFilter
+#    #log4j.appender.console.filter.1.Expression=EXCEPTION ~= org.apache.thrift.transport.TSaslTransportException
+#    #log4j.appender.console.filter.1.AcceptOnMatch=false
+---
+# Source: kyuubi/templates/spark-configmap.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: install-kyuubi-spark-configmap
+  namespace: dev-spark-jobs
+  labels:
+    app: kyuubi
+data:
+  # спрятать весь конфиг в секреты, подставив логин-пароль для подключения к постгре - RW для дата-инженеров, RO для аналитиков
+  hive-site.xml: |
+    <configuration>
+      <property>
+          <name>javax.jdo.option.ConnectionURL</name>
+          <value>jdbc:postgresql://postgresql.postgresql.svc.cluster.local:5432/metastore</value>
+      </property>
+
+      <property>
+          <name>javax.jdo.option.ConnectionDriverName</name>
+          <value>org.postgresql.Driver</value>
+      </property>
+  
+      <property>
+          <name>javax.jdo.option.ConnectionUserName</name>
+          <value>hive</value>
+      </property>
+  
+      <property>
+          <name>javax.jdo.option.ConnectionPassword</name>
+          <value>password</value>
+      </property>
+  
+      <property>
+          <name>datanucleus.schema.autoCreateTables</name>
+          <value>true</value>
+      </property>
+  
+      <property>
+          <name>hive.metastore.warehouse.dir</name>
+          <value>s3a://spark/warehouse/</value>
+      </property>
+  
+      <property>
+          <name>hive.metastore.schema.verification</name>
+          <value>false</value>
+      </property>
+  
+      <property>
+          <name>hive.stats.jdbc.timeout</name>
+          <value>30</value>
+      </property>
+  
+      <property>
+          <name>hive.stats.retries.wait</name>
+          <value>3000</value>
+      </property>
+    </configuration>
+
+  metrics.properties: |
+    *.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet
+    *.sink.prometheusServlet.path=/metrics/prometheus
+    master.sink.prometheusServlet.path=/metrics/master/prometheus
+    applications.sink.prometheusServlet.path=/metrics/applications/prometheus
+---
+# Source: kyuubi/templates/kyuubi-serviceaccount.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: install-kyuubi-rolebinding
+  namespace: dev-spark-jobs
+subjects:
+  - kind: ServiceAccount
+    name: install-kyuubi
+    namespace: kyuubi
+roleRef:
+  kind: Role
+  name: kyuubi
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: kyuubi/templates/kyuubi-headless.yaml
+kind: Service 
+apiVersion: v1
+metadata:
+  name: kyuubi-svc-headless
+  labels: 
+    app: kyuubi
+spec: 
+  clusterIP: None
+  ports: 
+    - name: http
+      protocol: TCP
+      port: 10009
+      targetPort: 10009
+  selector:
+    app: kyuubi
+---
+# Source: kyuubi/templates/kyuubi-service.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kyuubi-svc
+  labels:
+    app: kyuubi
+spec:
+  ports:
+    - name: http
+      nodePort: 30009
+      port: 10009
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: kyuubi
+    release: install
+---
+# Source: kyuubi/templates/kyuubi-statefulset.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kyuubi-server
+  labels:
+    app: kyuubi
+    release: install
+    heritage: Helm
+spec:
+  serviceName: kyuubi-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kyuubi
+      release: install
+  template:
+    metadata:
+      labels:
+        app: kyuubi
+        release: install
+    spec:
+      containers:
+        - name: kyuubi-server
+          image: "harbor-awsbi.runit.cc/kyuubi/kyuubi:test5"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: spark-secrets
+                  key: s3-rw-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spark-secrets
+                  key: s3-rw-secret-key
+          ports:
+            - name: frontend-port
+              containerPort: 10009
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: 10009
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 10
+          readinessProbe:
+            tcpSocket:
+              port: 10009
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 10
+          resources:
+            limits:
+              cpu: 2
+              memory: 4Gi
+            requests:
+              cpu: 2
+              memory: 4Gi
+          volumeMounts:
+            - name: kyuubi-defaults
+              mountPath: /opt/kyuubi/conf
+      nodeSelector: 
+        role: spark
+      tolerations: 
+        - effect: NoExecute
+          key: role
+          operator: Equal
+          value: spark
+      serviceAccountName: install-kyuubi
+      volumes:
+        - name: kyuubi-defaults
+          configMap:
+            name: kyuubi-defaults

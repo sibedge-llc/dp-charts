@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "schema-registry.fullname" . }}
+  labels:
+    app: {{ template "schema-registry.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:   
+      app: {{ template "schema-registry.name" . }} 
+      release: {{ .Release.Name }}  
+  template:
+    metadata:
+      labels:
+        app: {{ template "schema-registry.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.servicePort }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.servicePort }}
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.servicePort }}
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+          env:
+          - name: SCHEMA_REGISTRY_HOST_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+            value:  PLAINTEXT://kafka:9092
+          {{ range $configName, $configValue := .Values.configurationOverrides }}
+          - name: SCHEMA_REGISTRY_{{ $configName | replace "." "_" | upper }}
+            value: {{ $configValue }}
+          {{ end }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
