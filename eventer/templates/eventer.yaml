@@ -7,8 +7,8 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      name: http
+    - port: {{ .Values.config.listenPort }}
+      targetPort: {{ .Values.config.listenPort }}
+      name: http-eventer
   selector:
     {{- include "eventer.selectorLabels" . | nindent 4 }}

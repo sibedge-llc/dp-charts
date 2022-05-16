@@ -19,7 +19,7 @@ spec:
       {{- end }}
       labels:
         {{- include "eventer.selectorLabels" . | nindent 8 }}
-        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        rollme: {{ randAlphaNum 5 | quote }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -36,16 +36,16 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["./eventer", "start", "--config", "/etc/eventer/config.yaml"]
           ports:
-            - name: http
+            - name: http-eventer
               containerPort: {{ .Values.config.listenPort }}
           livenessProbe:
             httpGet:
               path: /
-              port: http
+              port: http-eventer
           readinessProbe:
             httpGet:
               path: /
-              port: http
+              port: http-eventer
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:

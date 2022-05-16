@@ -10,21 +10,22 @@ image:
   tag: "1.0.0"
 
 imagePullSecrets: []
-nameOverride: "eventer-1.0.0"
+nameOverride: "eventer"
 fullnameOverride: ""
 
 config:
-  instanceId: "eventer-1.0.0"
+  instanceId: "eventer"
+  listenPort: 9099
   logLevel: debug
   kafka:
-    servers: kafka:9092
+    servers: kafka
     topic: events
   postgres:
-    host: postgres
+    host: postgresql
     port: 5432
-    user: user
-    password: secret
-    db: eventer
+    user: hive
+    password: password
+    db: metastore
     table: events
 
 serviceAccount:
@@ -32,7 +33,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "services-eventer"
+  name: "eventer"
 
 podAnnotations: {}
 
@@ -49,7 +50,9 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 9099
+  ports:
+    - port: 9099
+      targetPort: 9099
 
 ingress:
   enabled: false
@@ -91,3 +94,5 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+clusterDomain: cluster.local

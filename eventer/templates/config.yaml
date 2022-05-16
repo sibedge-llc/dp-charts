@@ -5,8 +5,8 @@ metadata:
 data:
   config.yaml: |
     logging:
-    # levels: "debug", "info", "warn", "error", "dpanic", "panic", and "fatal"
-    level: {{ .Values.config.logLevel }}
+      # levels: "debug", "info", "warn", "error", "dpanic", "panic", and "fatal"
+      level: {{ .Values.config.logLevel }}
 
     instance_id: {{ .Values.config.instanceId }}
 
@@ -23,4 +23,4 @@ data:
       table: {{ .Values.config.postgres.table }}
 
     service:
-      listen: "0.0.0.0:{{ .Values.service.port }}"
+      listen: "0.0.0.0:{{ .Values.config.listenPort }}"
