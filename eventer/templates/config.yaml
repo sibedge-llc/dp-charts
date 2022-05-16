@@ -15,11 +15,11 @@ data:
       topic: {{ .Values.config.kafka.topic }}
 
     postgres:
-      host: "${secret_postgres/host}"
-      port: ${secret_postgres/port}
-      user: "${secret_postgres/user}"
-      password: "${secret_postgres/password}"
-      db: "${secret_postgres/db}"
+      host: {{ .Values.config.postgres.host }}
+      port: {{ .Values.config.postgres.port }}
+      user: {{ .Values.config.postgres.user }}
+      password: {{ .Values.config.postgres.password }}
+      db: {{ .Values.config.postgres.db }}
       table: {{ .Values.config.postgres.table }}
 
     service:
