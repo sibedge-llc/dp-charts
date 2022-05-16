@@ -1,0 +1,10 @@
+```bash
+cd ..
+helm upgrade --install eventer eventer/ \
+  --namespace eventer \
+  --create-namespace \
+  -f eventer/values.yaml
+
+helm uninstall eventer --namespace eventer
+
+```
