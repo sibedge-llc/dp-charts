@@ -5,9 +5,9 @@
 replicaCount: 1
 
 image:
-  repository: artemalemasov/services
+  repository: sibedge/dp-services-eventer
   pullPolicy: Always
-  tag: "eventer-1.0.0"
+  tag: "1.0.0"
 
 imagePullSecrets: []
 nameOverride: "eventer-1.0.0"
@@ -20,6 +20,11 @@ config:
     servers: kafka:9092
     topic: events
   postgres:
+    host: postgres
+    port: 5432
+    user: user
+    password: secret
+    db: eventer
     table: events
 
 serviceAccount:
