@@ -14,8 +14,7 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  ## Uncomment when deploy against Vultr cloud
-  ## storageClass: "vultr-block-storage"
+  storageClass: "vultr-block-storage"
 
 ## @section Common parameters
 
