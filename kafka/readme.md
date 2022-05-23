@@ -15,5 +15,4 @@ helm install kafka bitnami/kafka \
 6. Run uninstall in case kafka/zookeeper is not needed anymore
 ```
 helm uninstall kafka --namespace kafka
-
 ```
